@@ -90,7 +90,7 @@ export const initialize = async (
     [Buffer.from('registerations')],
     programId
   )
-
+  let txn = "transaction"
   tx = await program.methods
     .initialize()
     .accountsPartial({
