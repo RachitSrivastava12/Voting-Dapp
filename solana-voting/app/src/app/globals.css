@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #f3f7fc;
+    --surface: #ffffff;
+    --elevated: #e9f0f9;
+    --surface-hover: #edf4fd;
+    --border: rgba(15, 23, 42, 0.12);
+    --cyan: #009fd6;
+    --green: #12b76a;
+    --accent-soft: rgba(0, 159, 214, 0.1);
+    --success-soft: rgba(18, 183, 106, 0.1);
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --text-faint: rgba(100, 116, 139, 0.65);
+    --grid-color: rgba(0, 159, 214, 0.08);
+    --grid-line: rgba(0, 159, 214, 0.05);
+    --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.08);
+  }
+
+  html[data-theme="dark"] {
+    --bg: #07070f;
+    --surface: #0b0b17;
+    --elevated: #0f0f1e;
+    --surface-hover: #131326;
+    --border: rgba(255, 255, 255, 0.08);
+    --cyan: #00d4ff;
+    --green: #00ff88;
+    --accent-soft: rgba(0, 212, 255, 0.1);
+    --success-soft: rgba(0, 255, 136, 0.1);
+    --text-primary: #eeeef8;
+    --text-secondary: #c6d0f5;
+    --text-muted: #8a94b9;
+    --text-faint: rgba(198, 208, 245, 0.55);
+    --grid-color: rgba(0, 212, 255, 0.08);
+    --grid-line: rgba(0, 212, 255, 0.03);
+    --shadow-soft: 0 24px 60px rgba(0, 0, 0, 0.35);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 17px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+  }
+}
+
+/* Grid dot background */
+.bg-dot-grid {
+  background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Subtle line grid */
+.bg-line-grid {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+
+/* Monospace data class */
+.data {
+  font-family: 'SFMono-Regular', 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Vote bar fill */
+@keyframes barFill {
+  from { width: 0%; }
+  to { width: var(--pct); }
+}
+
+.vote-bar {
+  animation: barFill 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Scan line shimmer on loading */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, var(--border) 50%, transparent 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+/* Pulse ring */
+@keyframes pulseRing {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.live-dot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulseRing 2s ease-out infinite;
+}
+
+/* Wallet adapter overrides — sharp terminal look */
+.wallet-adapter-button {
+  font-family: 'SFMono-Regular', Consolas, monospace !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  height: 42px !important;
+  padding: 0 18px !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--cyan) 35%, transparent) !important;
+  color: color-mix(in srgb, var(--cyan) 85%, white 15%) !important;
+  transition: all 0.15s ease !important;
+  line-height: 1 !important;
+}
+
+.wallet-adapter-button:hover:not([disabled]) {
+  background: var(--accent-soft) !important;
+  border-color: color-mix(in srgb, var(--cyan) 55%, transparent) !important;
+  color: var(--cyan) !important;
+}
+
+.wallet-adapter-button-trigger {
+  background: transparent !important;
+}
+
+.wallet-adapter-button .wallet-adapter-button-start-icon {
+  display: none !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: var(--elevated) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.wallet-adapter-modal-title,
+.wallet-adapter-modal-list-more,
+.wallet-adapter-modal-list .wallet-adapter-button {
+  color: var(--text-primary) !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+}
+
+@layer utilities {
+  .bg-app {
+    background-color: var(--bg);
+  }
+
+  .bg-app-surface {
+    background-color: var(--surface);
+  }
+
+  .bg-app-elevated {
+    background-color: var(--elevated);
+  }
+
+  .border-app {
+    border-color: var(--border);
+  }
+
+  .text-app {
+    color: var(--text-primary);
+  }
+
+  .text-app-secondary {
+    color: var(--text-secondary);
+  }
+
+  .text-app-muted {
+    color: var(--text-muted);
+  }
+
+  .text-app-faint {
+    color: var(--text-faint);
+  }
+}
