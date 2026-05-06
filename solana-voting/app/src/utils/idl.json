@@ -3,7 +3,8 @@
   "metadata": {
     "name": "voting",
     "version": "0.1.0",
-    "spec": "0.1.0"
+    "spec": "0.1.0",
+    "description": "Decentralized voting on Solana"
   },
   "instructions": [
     {
@@ -122,6 +123,10 @@
           "name": "voter",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "memo_program",
+          "address": "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
         },
         {
           "name": "system_program",

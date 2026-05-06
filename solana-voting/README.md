@@ -6,6 +6,7 @@ Decentralized voting on Solana. Anchor program + Next.js frontend.
 - Anyone with a wallet can create a poll (2-5 options, custom duration)
 - One vote per wallet per poll (enforced by PDA, init constraint blocks doubles)
 - Live results with vote bars
+- Every vote writes a human-readable memo so Solana Explorer shows who voted on which poll and option
 - Devnet by default
 
 ## Prerequisites (install once)
@@ -102,6 +103,24 @@ Anchor program
 ### Why PDA-based vote tracking?
 
 Each vote creates a `VoterRecord` PDA seeded by `(poll, voter)`. Anchor's `init` will fail if the account already exists — meaning the SAME wallet cannot vote twice on the same poll. No extra logic needed; it's enforced by the runtime.
+
+### How to verify a vote in Explorer
+
+When someone votes, the transaction now includes a Memo program CPI with a payload like:
+
+```text
+solana-vote|poll=<poll_pubkey>|poll_id=<id>|voter=<wallet>|option_index=<n>|option_name=<label>
+```
+
+That means in Solana Explorer you can open the vote transaction and immediately see:
+- which wallet voted
+- which poll it targeted
+- which option index and label were chosen
+
+The UI also links directly to:
+- the poll account
+- the voter's `VoterRecord` PDA
+- the exact vote transaction on Explorer
 
 ## Files
 

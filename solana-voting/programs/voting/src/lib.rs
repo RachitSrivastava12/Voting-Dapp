@@ -1,6 +1,9 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::{instruction::Instruction, program::invoke};
 
 declare_id!("FoVqhkdSMVooKQm8t4XKX3Yg7LHjpe8CzZ962KzR5dsL");
+
+const MEMO_PROGRAM_ID: Pubkey = pubkey!("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
 #[program]
 pub mod voting {
@@ -17,18 +20,27 @@ pub mod voting {
     ) -> Result<()> {
         require!(title.len() <= 100, VotingError::TitleTooLong);
         require!(description.len() <= 280, VotingError::DescriptionTooLong);
-        require!(options.len() >= 2 && options.len() <= 5, VotingError::InvalidOptionCount);
-        require!(end_time > Clock::get()?.unix_timestamp, VotingError::InvalidEndTime);
+        require!(
+            options.len() >= 2 && options.len() <= 5,
+            VotingError::InvalidOptionCount
+        );
+        require!(
+            end_time > Clock::get()?.unix_timestamp,
+            VotingError::InvalidEndTime
+        );
 
         let poll = &mut ctx.accounts.poll;
         poll.id = poll_id;
         poll.creator = ctx.accounts.creator.key();
         poll.title = title;
         poll.description = description;
-        poll.options = options.iter().map(|name| PollOption {
-            name: name.clone(),
-            votes: 0,
-        }).collect();
+        poll.options = options
+            .iter()
+            .map(|name| PollOption {
+                name: name.clone(),
+                votes: 0,
+            })
+            .collect();
         poll.end_time = end_time;
         poll.bump = ctx.bumps.poll;
         Ok(())
@@ -40,7 +52,10 @@ pub mod voting {
         let now = Clock::get()?.unix_timestamp;
 
         require!(now < poll.end_time, VotingError::PollEnded);
-        require!((option_index as usize) < poll.options.len(), VotingError::InvalidOption);
+        require!(
+            (option_index as usize) < poll.options.len(),
+            VotingError::InvalidOption
+        );
 
         poll.options[option_index as usize].votes += 1;
 
@@ -48,6 +63,25 @@ pub mod voting {
         voter_record.voter = ctx.accounts.voter.key();
         voter_record.poll = poll.key();
         voter_record.option_index = option_index;
+
+        let option_name = poll.options[option_index as usize].name.clone();
+        let memo = format!(
+            "solana-vote|poll={}|poll_id={}|voter={}|option_index={}|option_name={}",
+            poll.key(),
+            poll.id,
+            ctx.accounts.voter.key(),
+            option_index,
+            option_name
+        );
+
+        invoke(
+            &Instruction {
+                program_id: ctx.accounts.memo_program.key(),
+                accounts: vec![],
+                data: memo.into_bytes(),
+            },
+            &[ctx.accounts.memo_program.to_account_info()],
+        )?;
         Ok(())
     }
 }
@@ -82,6 +116,9 @@ pub struct Vote<'info> {
     pub voter_record: Account<'info, VoterRecord>,
     #[account(mut)]
     pub voter: Signer<'info>,
+    /// CHECK: The address constraint guarantees this is the canonical Memo program.
+    #[account(address = MEMO_PROGRAM_ID)]
+    pub memo_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
 }
 

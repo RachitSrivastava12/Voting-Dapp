@@ -4,6 +4,8 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import idl from "./idl.json";
 
 export const PROGRAM_ID = new PublicKey("FoVqhkdSMVooKQm8t4XKX3Yg7LHjpe8CzZ962KzR5dsL");
+export const MEMO_PROGRAM_ID = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+export const EXPLORER_CLUSTER = "devnet";
 
 export function getProgram(connection: Connection, wallet: WalletContextState) {
   // AnchorProvider expects a wallet with signTransaction; cast for typing.
@@ -25,6 +27,10 @@ export function getVoterRecordPda(poll: PublicKey, voter: PublicKey) {
     [Buffer.from("voter"), poll.toBuffer(), voter.toBuffer()],
     PROGRAM_ID
   )[0];
+}
+
+export function getExplorerUrl(path: string) {
+  return `https://explorer.solana.com/${path}?cluster=${EXPLORER_CLUSTER}`;
 }
 
 export { SystemProgram, BN };

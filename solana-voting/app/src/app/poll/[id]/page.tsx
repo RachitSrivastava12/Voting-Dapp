@@ -4,7 +4,14 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Navbar } from "@/components/Navbar";
-import { getProgram, getVoterRecordPda, SystemProgram, BN } from "@/utils/program";
+import {
+  getExplorerUrl,
+  getProgram,
+  getVoterRecordPda,
+  MEMO_PROGRAM_ID,
+  SystemProgram,
+  BN,
+} from "@/utils/program";
 import { PublicKey } from "@solana/web3.js";
 
 type Poll = {
@@ -27,6 +34,7 @@ export default function PollDetail() {
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [myChoice, setMyChoice] = useState<number | null>(null);
+  const [lastVoteSignature, setLastVoteSignature] = useState<string | null>(null);
 
   const pollId = params.id as string;
 
@@ -61,20 +69,23 @@ export default function PollDetail() {
   async function castVote(optionIndex: number) {
     if (!wallet.publicKey || !poll) return;
     setVoting(true);
+    setLastVoteSignature(null);
     try {
       const program = getProgram(connection, wallet);
       const voterRecordPda = getVoterRecordPda(poll.publicKey, wallet.publicKey);
 
-      await program.methods
+      const signature = await program.methods
         .vote(optionIndex)
         .accounts({
           poll: poll.publicKey,
           voterRecord: voterRecordPda,
           voter: wallet.publicKey,
+          memoProgram: MEMO_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         })
         .rpc();
 
+      setLastVoteSignature(signature);
       await fetchPoll();
     } catch (err: any) {
       console.error(err);
@@ -122,6 +133,9 @@ export default function PollDetail() {
   const totalVotes = poll.options.reduce((sum, o) => sum + o.votes.toNumber(), 0);
   const ended = poll.endTime.toNumber() * 1000 < Date.now();
   const isCreator = wallet.publicKey?.equals(poll.creator);
+  const voterRecordPda = wallet.publicKey
+    ? getVoterRecordPda(poll.publicKey, wallet.publicKey)
+    : null;
   const timeMs = poll.endTime.toNumber() * 1000 - Date.now();
   const daysLeft = Math.floor(timeMs / (1000 * 60 * 60 * 24));
   const hoursLeft = Math.floor((timeMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -228,9 +242,16 @@ export default function PollDetail() {
             {/* On-chain address */}
             <div className="rounded-xl border border-app bg-app-surface p-5 shadow-[var(--shadow-soft)]">
               <div className="data mb-3 text-sm uppercase tracking-[0.2em] text-app-faint">Program account</div>
-              <code className="data break-all text-sm leading-relaxed tracking-wider text-app-secondary">
-                {poll.publicKey.toString()}
-              </code>
+              <a
+                href={getExplorerUrl(`address/${poll.publicKey.toString()}`)}
+                target="_blank"
+                rel="noreferrer"
+                className="block"
+              >
+                <code className="data break-all text-sm leading-relaxed tracking-wider text-app-secondary transition-colors hover:text-app">
+                  {poll.publicKey.toString()}
+                </code>
+              </a>
             </div>
 
             {/* Voted banner */}
@@ -248,6 +269,26 @@ export default function PollDetail() {
                     {poll.options[myChoice!]?.name}
                   </span>
                 </p>
+                {voterRecordPda && (
+                  <a
+                    href={getExplorerUrl(`address/${voterRecordPda.toString()}`)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="data mt-3 inline-flex text-sm uppercase tracking-widest text-[color:var(--green)] transition-opacity hover:opacity-80"
+                  >
+                    Open voter record on Explorer ↗
+                  </a>
+                )}
+                {lastVoteSignature && (
+                  <a
+                    href={getExplorerUrl(`tx/${lastVoteSignature}`)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="data mt-2 inline-flex text-sm uppercase tracking-widest text-[color:var(--green)] transition-opacity hover:opacity-80"
+                  >
+                    Open vote transaction memo ↗
+                  </a>
+                )}
               </div>
             )}
           </aside>
